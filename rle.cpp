@@ -32,7 +32,7 @@ uint8_t rle::hlp::countsSingleChar(const std::string& text, std::string& shifr, 
 void rle::compressionString(const std::string &text, std::string &shifr)
 {
   if(!shifr.empty())
-    shifr.empty();
+    shifr.clear();
   
   uint8_t len = 0;
 
