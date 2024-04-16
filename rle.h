@@ -2,6 +2,7 @@
 #define RLE_COMPRESSION_DEFENDER
 
 #include <string>
+#include <string_view>
 
 namespace rle{
 
@@ -10,14 +11,14 @@ namespace rle{
 
 // function for compression
 namespace hlp{
-  uint8_t countsComboChar(const std::string& text, size_t& i);
-  uint8_t countsSingleChar(const std::string& text, std::string& shifr, size_t& i);
+  uint8_t countsComboChar(std::string_view text, size_t& i);
+  uint8_t countsSingleChar(std::string_view text, std::string& shifr, size_t& i);
 }
   // RLE algoritm for compression text
-  void compressionString(const std::string& text, std::string& shifr);
+  void compressionString(std::string_view text, std::string& shifr);
 
   // Return decompression RLE shift
-  std::string decompressionString(std::string& shifr);
+  std::string decompressionString(std::string_view shifr);
 
 #endif // OLD BIT
 }

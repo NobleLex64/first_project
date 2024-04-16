@@ -1,6 +1,6 @@
 #include "rle.h"
 
-uint8_t rle::hlp::countsComboChar(const std::string& text, size_t& i){
+uint8_t rle::hlp::countsComboChar(std::string_view text, size_t& i){
 
   size_t start = i - 1;
 
@@ -10,7 +10,7 @@ uint8_t rle::hlp::countsComboChar(const std::string& text, size_t& i){
   return i - start;
 }
 
-uint8_t rle::hlp::countsSingleChar(const std::string& text, std::string& shifr, size_t& i){
+uint8_t rle::hlp::countsSingleChar(std::string_view text, std::string& shifr, size_t& i){
 
   size_t start = i;
 
@@ -29,7 +29,7 @@ uint8_t rle::hlp::countsSingleChar(const std::string& text, std::string& shifr, 
   return i - start;
 }
 
-void rle::compressionString(const std::string &text, std::string &shifr)
+void rle::compressionString(std::string_view text, std::string& shifr)
 {
   if(!shifr.empty())
     shifr.clear();
@@ -60,7 +60,7 @@ void rle::compressionString(const std::string &text, std::string &shifr)
   }
 }
 
-std::string rle::decompressionString(std::string &shifr)
+std::string rle::decompressionString(std::string_view shifr)
 {
   if(shifr.empty())
     return std::string();
