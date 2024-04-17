@@ -11,8 +11,8 @@ namespace rle{
 
 // function for compression
 namespace hlp{
-  uint8_t countsComboChar(std::string_view text, size_t& i);
-  uint8_t countsSingleChar(std::string_view text, std::string& shifr, size_t& i);
+  uint8_t countsComboChar(std::string_view text, std::string_view::iterator& it);
+  uint8_t countsSingleChar(std::string_view text, std::string_view::iterator& it);
 }
   // RLE algoritm for compression text
   void compressionString(std::string_view text, std::string& shifr);

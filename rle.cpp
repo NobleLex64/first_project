@@ -1,55 +1,51 @@
 #include "rle.h"
 
-uint8_t rle::hlp::countsComboChar(std::string_view text, size_t& i){
+uint8_t rle::hlp::countsComboChar(std::string_view text, std::string_view::iterator& it){
 
-  size_t start = i - 1;
+  auto beg = it - 1;
+  auto end = text.end() - it > 128 ? it + 128: text.end();
 
-  while(i < text.size() && i - start < 129 && text[i] == text[i - 1])
-    ++i;
+  while(it != end && *it == *(it - 1))
+    ++it;
 
-  return i - start;
+  return static_cast<uint8_t>(it - beg);
 }
 
-uint8_t rle::hlp::countsSingleChar(std::string_view text, std::string& shifr, size_t& i){
+uint8_t rle::hlp::countsSingleChar(std::string_view text, std::string_view::iterator& it){
 
-  size_t start = i;
+  auto beg = it - 1;
+  auto end = text.end() - it > 128 ? it + 128: text.end();
 
-  while(i < text.size() && i - start < 128 && text[i] != text[i - 1])
-  {
-    shifr.push_back(text[i - 1]);
-    ++i;
-  }
+  while(it != end && *it != *(it - 1))
+    ++it;
 
-  if(i - start < 128 && i == text.size())
-  {
-    shifr.push_back(text[i - 1]);
-    ++i;
-  }
-
-  return i - start;
+  return static_cast<uint8_t>(--it - beg);
 }
 
 void rle::compressionString(std::string_view text, std::string& shifr)
 {
   if(!shifr.empty())
     shifr.clear();
-  
+
+  shifr.reserve(text.size());
+
   uint8_t len = 0;
 
-  for(size_t i = 1, n = text.size(); i < n; len = 0)
+  for(auto it = text.begin() + 1, end = text.end(); it < end; ++it)
   {
-    if(text[i] == text[i - 1])
+    len = hlp::countsComboChar(text, it);
+    
+    if(len > 1)
     {
-      len = hlp::countsComboChar(text, i);
       shifr.push_back(len - 2 | OLD_BIT);
-      shifr.push_back(text[i - 1]);
-      ++i;
+      shifr.push_back(*(it - 1));
     }
-    else if(text[i] != text[i - 1])
+    else
     {
-      shifr.push_back(len);
-      len = hlp::countsSingleChar(text, shifr, i) + 1;
-      shifr[shifr.size() - len] = len - 2;
+      auto start = it - 1;
+      len = hlp::countsSingleChar(text, it);
+      shifr.push_back(len - 1);
+      shifr.insert(shifr.size(), text, (start - text.begin()), len);
     }
   }
 
@@ -68,25 +64,21 @@ std::string rle::decompressionString(std::string_view shifr)
   uint8_t count = 0;
 
   std::string decomp_text;
+  decomp_text.reserve(shifr.size());
 
-  for(uint64_t i = 0, n = shifr.size(); i < n;){
+  for(auto it = shifr.begin(), end = shifr.end() - 1; it < end; ++it){
 
-    count = shifr[i];
+    count = *it;
 
     if((count & OLD_BIT) == OLD_BIT)
     {
       count = (count & INT8_MAX) + 2;
-      decomp_text.insert(decomp_text.end(), count, shifr[i + 1]);
-      i += 2;
+      decomp_text.insert(decomp_text.end(), count, *(++it));
     }
     else
     {
-      while(count != 255)
-      {
-        decomp_text.push_back(shifr[++i]);
-        --count;
-      }
-      i += 1;
+      decomp_text.insert(decomp_text.size(), shifr, (it - shifr.begin()) + 1, count + 1);
+      it += (count + 1);
     }
   }
 
