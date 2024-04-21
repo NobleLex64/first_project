@@ -1,86 +1,294 @@
 #include "rle.h"
 
-uint8_t rle::hlp::countsComboChar(std::string_view text, std::string_view::iterator& it){
+// rle::hlp
+// 
 
-  auto beg = it - 1;
-  auto end = text.end() - it > 128 ? it + 128: text.end();
+uint16_t rle::hlp::countsComboChars(std::string_view text, std::string_view::iterator& it, const uint16_t max){
+  if(it == text.end())
+    return 1;
 
-  while(it != end && *it == *(it - 1))
-    ++it;
+  auto beg = it;
+  auto end = std::min(it + max, text.end());
 
-  return static_cast<uint8_t>(it - beg);
+  while(it < end && *it == *(++it));
+
+  return static_cast<uint16_t>(std::distance(beg, it--));
 }
 
-uint8_t rle::hlp::countsSingleChar(std::string_view text, std::string_view::iterator& it){
+uint16_t rle::hlp::countsSingleChar(std::string_view text, std::string_view::iterator& it, const uint16_t max){
 
-  auto beg = it - 1;
-  auto end = text.end() - it > 128 ? it + 128: text.end();
+  if(it == text.end())
+    return 1;
 
-  while(it != end && *it != *(it - 1))
+  auto beg = it;
+  auto end = std::min(it + max, text.end());
+
+  // abcdef -> ++it, ++it, ++it, ++it, ++it
+  while(it < end && *it != *(it + 1))
     ++it;
 
-  return static_cast<uint8_t>(--it - beg);
+  return static_cast<uint16_t>(std::distance(beg, it--));
 }
 
-void rle::compressionString(std::string_view text, std::string& shifr)
-{
-  if(!shifr.empty())
-    shifr.clear();
 
-  shifr.reserve(text.size());
-
+void rle::hlp::compressionTxt(std::string_view text, std::string& shifr){
   uint8_t len = 0;
 
-  for(auto it = text.begin() + 1, end = text.end(); it < end; ++it)
+  for(auto it = text.begin(), end = text.end(); it < end; ++it)
   {
-    len = hlp::countsComboChar(text, it);
+    len = countsComboChars(text, it, 128);
     
     if(len > 1)
     {
-      shifr.push_back(len - 2 | OLD_BIT);
-      shifr.push_back(*(it - 1));
+      shifr.push_back(len - 2 | 128);
+      shifr.push_back(*it);
     }
     else
     {
-      auto start = it - 1;
-      len = hlp::countsSingleChar(text, it);
+      auto start = it;
+      len = countsSingleChar(text, it, 128);
       shifr.push_back(len - 1);
-      shifr.insert(shifr.size(), text, (start - text.begin()), len);
+      shifr.insert(shifr.size(), text, std::distance(text.begin(), start), len);
     }
-  }
-
-  if(shifr.back() != text.back())
-  {
-    shifr.push_back(0);
-    shifr.push_back(text.back());
   }
 }
 
-std::string rle::decompressionString(std::string_view shifr)
-{
-  if(shifr.empty())
-    return std::string();
+void rle::hlp::compressionImg(std::string_view image, std::string& shifr){
+  uint8_t bit1 = 0;
+  uint8_t bit2 = 0;
+  uint16_t len = 0;
 
-  uint8_t count = 0;
+  for(auto it = image.begin(), end = image.end(); it < end; ++it)
+  {
+    len = countsComboChars(image, it, 16384);
 
-  std::string decomp_text;
-  decomp_text.reserve(shifr.size());
+    if(len > 1)
+    { 
+      if(len > 65)
+      {
+        bit1 = (len >> 8) | 192;
+        bit2 = (len - 2) & 255;
+        shifr.push_back(bit1);
+        shifr.push_back(bit2);
+      }
+      else
+      {
+        bit1 = len - 2 | 128;
+        shifr.push_back(bit1);
+      }
 
-  for(auto it = shifr.begin(), end = shifr.end() - 1; it < end; ++it){
-
-    count = *it;
-
-    if((count & OLD_BIT) == OLD_BIT)
-    {
-      count = (count & INT8_MAX) + 2;
-      decomp_text.insert(decomp_text.end(), count, *(++it));
+      shifr.push_back(*it);
     }
     else
     {
-      decomp_text.insert(decomp_text.size(), shifr, (it - shifr.begin()) + 1, count + 1);
-      it += (count + 1);
+      auto start = it;
+      len = countsSingleChar(image, it, 16384);
+
+      if(len > 64)
+      {
+        bit1 = (len >> 8) | 64;
+        bit2 = (len - 1) & 255;
+        shifr.push_back(bit1);
+        shifr.push_back(bit2);
+      }
+      else
+      {
+        bit1 = len - 1;
+        shifr.push_back(bit1);
+      }
+
+      shifr.insert(shifr.size(), image, std::distance(image.begin(), start), len);
+    }
+  }
+}
+
+
+size_t rle::hlp::newSizeTxt(std::string_view text){
+  uint8_t len = 0;
+  size_t size = 0;
+
+  for(auto it = text.begin(), end = text.end(); it < end; ++it)
+  {
+    len = countsComboChars(text, it, 128);
+
+    if(len > 1)
+      size += 2;
+    else
+    {
+      len = countsSingleChar(text, it, 128);
+      size += len + 1;
+    }
+  }
+  return size;
+}
+
+size_t rle::hlp::newSizeImg(std::string_view image){
+  uint16_t len = 0;
+  size_t size  = 0;
+
+  for(auto it = image.begin(), end = image.end(); it < end; ++it)
+  {
+    len = countsComboChars(image, it, 16384);
+
+    if(len > 1)
+    {
+      if(len > 65)
+        size += 3;
+      else
+        size += 2;
+    }
+    else
+    {
+      len = countsSingleChar(image, it);
+
+      if(len > 64)
+        size += len + 2;
+      else
+        size += len + 1;
     }
   }
 
-  return decomp_text;
+  return size;
+}
+
+
+size_t rle::hlp::newSizeShifrTxt(std::string_view text){
+  size_t size = 0;
+
+    for (auto it = text.begin() + 1, end = text.end() - 1; it < end; ++it)
+      if ((*it & 128) == 128){
+        size += (*it & 127) + 2;
+        ++it;
+      }
+      else{
+        size += *it + 1;
+        it   += *it + 1;
+      }
+    
+    return size;
+}
+
+size_t rle::hlp::newSizeShifrImg(std::string_view image){
+  size_t size = 0;
+
+  for (auto it = image.begin() + 1, end = image.end() - 1; it < end; ++it)
+      if ((*it & 128) == 128){
+        if((*it & 64) == 64){
+          size += (*it & 63) * 256 + (*(it + 1) & 127) + 2;
+          it += 2;
+        }
+        else
+        {
+          size += (*it & 63) + 2;
+          ++it;
+        }
+      }
+      else{
+        if((*it & 64) == 64){
+          size += (*it & 63) * 256 + (*(it + 1) & 127) + 1;
+          it += *it + 2;
+        }
+        else
+        {
+          size += (*it & 63) + 1;
+          it += *it + 1;
+        }
+      }
+  return size;
+}
+
+
+void rle::hlp::decompressionTxt(std::string_view shifr, std::string& text){
+  uint8_t count = 0;
+  for(auto it = shifr.begin() + 1, end = shifr.end() - 1; it < end; ++it)
+    if((*it & 128) == 128)
+    {
+      count = (*it & 127) + 2;
+      text.insert(text.end(), count, *(++it));
+    }
+    else
+    {
+      text.insert(text.size(), shifr, std::distance(shifr.begin(), it) + 1, *it + 1);
+      it += (*it + 1);
+    }
+}
+
+void rle::hlp::decompressionImg(std::string_view shifr, std::string& image){
+  uint16_t count = 0;
+
+  for(auto it = shifr.begin() + 1, end = shifr.end() - 1; it < end; ++it){
+    if ((*it & 128) == 128){
+      if((*it & 64) == 64)
+      {
+        count = (*it & 63) * 256 + *(it + 1) + 2;
+        image.insert(image.end(), count, *(it + 2));
+        it += 2;
+      }
+      else
+      {
+        count = ((*it & 127) + 2);
+        image.insert(image.end(), count, *(++it));
+      }
+    }
+    else{
+      if((*it & 64) == 64){
+        image.insert(image.size(), shifr, std::distance(shifr.begin(), it) + 2, *it + 1);
+        it += (*it + 2);
+      }
+      else
+      {
+        image.insert(image.size(), shifr, std::distance(shifr.begin(), it) + 1, *it + 1);
+        it += (*it + 1);
+      }
+    }
+  }
+}
+
+// rle
+// 
+
+std::string rle::compression(std::string_view data)
+{
+  if (data.empty())
+    return std::string();
+
+  std::string shifr = "";
+  size_t new_size_text  = hlp::newSizeTxt(data);
+  size_t new_size_image = hlp::newSizeImg(data);
+
+  if (new_size_text <= new_size_image)
+  {
+    shifr.reserve(new_size_text + 1);
+    shifr.push_back('\0');
+    hlp::compressionTxt(data, shifr);
+  }
+  else
+  {
+    shifr.reserve(new_size_image + 1);
+    shifr.push_back('\377');
+    hlp::compressionImg(data, shifr); 
+  }
+
+  return shifr;
+}
+
+std::string rle::decompression(std::string_view shifr)
+{
+  if(shifr.empty())
+    return std::string();
+  
+  std::string data = "";
+
+  if(shifr[0] == '\0')
+  {
+    data.reserve(hlp::newSizeShifrTxt(shifr));
+    hlp::decompressionTxt(shifr, data);
+  }
+  else
+  {
+    data.reserve(hlp::newSizeShifrImg(shifr));
+    hlp::decompressionImg(shifr, data);
+  }
+
+  return data;
 }
