@@ -6,7 +6,7 @@ enable_testing()
 
 set(CMAKE_CXX_STANDARD 20) 
 
-add_executable(Main main.cpp rle.cpp test.cpp rowGenerator.cpp)
+add_executable(testing main.cpp lz77.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})

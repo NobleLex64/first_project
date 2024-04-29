@@ -1,74 +1,53 @@
-#include "test.h"
-#include "rowGenerator.h"
+#include "lz77.h"
+
+#include <iostream>
+#include <fstream>
 
 int main(){
 
-  // Path from catolog with input file
-  std::string path_input = "../data/input/";
-
-  // Random string generator
-  std::cout << "You need random generator string? (y/n)" << std::endl;
-  if(std::cin.get() == 'y')
+  std::vector<std::string> data;
+  std::fstream file;
   {
-    size_t n = 0;
-    size_t s_max = 0;
-    size_t s_min = 0;
-    std::cin.ignore();
-
-    std::cout << "Enter, how many rows you need          : ";
-    std::cin >> n;
-
-    std::cout << "Enter, maximum possible size of strings: ";
-    std::cin >> s_max;
-
-    std::cout << "Enter, minimum possible size of strings: ";
-    std::cin >> s_min;
-
-    std::vector<std::string> vec1 = gnr::generator(n, s_min, s_max);
-    tst::testRle(vec1, "../data/output/randomGeneratorlines.txt");
-  }
-
-  try{
-    std::ifstream input;
-
-    // open text input file
-    input.open(path_input + "text.txt");  
-
+    file.open("../data/input/test_for_lz77.txt");
     std::string str;
-    std::string ifstr;
-
-    while(!input.eof())
+    while(!file.eof())
     {
-      ifstr = "";
-      std::getline(input, ifstr);
-      str += ifstr;
+      str = "";
+      std::getline(file, str);
+      data.push_back(str);
     }
-
-    // close text input file
-    input.close();
-
-    // write result in text output file
-    tst::testRle(str, "../data/output/textResult.txt");
-
-    // Open the file in binary mode
-    input.open(path_input + "pngwing.png");
-    str = "";
-
-    while(!input.eof())
+    file.close();
+    file.open("../data/input/text.txt");
+    std::string res = "";
+    while(!file.eof())
     {
-      ifstr = "";
-      std::getline(input, ifstr);
-      str += ifstr;
+      str = "";
+      std::getline(file, str);
+      res += str + '\n';
     }
-    // close image input file
-    input.close();
-
-    // write result in image output file
-    tst::testRle(str, "../data/output/imageResult.txt");
-
-  }catch(...)
-  {
-    std::cerr << "ERROR with reading file!" << std::endl;
+    data.push_back(res);
+    file.close();
   }
+
+  {
+    file.open("../data/output/LZ77.TXT"); 
+    for(int i = 0; i < data.size(); ++i){
+      size_t size = data[i].size();
+      std::string shifr = lz77::compression(data[i]);
+      if(size < 200)
+      {
+        file << "Entered data(" << size << ") : " << data[i] << std::endl;
+        file << "Result shifr     : " << shifr << std::endl;
+      }
+
+      file << "data / shifr     : " << size / static_cast<double>(shifr.size()) << std::endl;
+      std::string decomp = lz77::decompression(shifr);
+      size = decomp.size();
+      file << "Result decomp("<< size <<"): "<< decomp << std::endl;
+      decomp == data[i]? file << "algoritm works! :)" << std::endl << std::endl: file << "algoritm doesn't works! :(" << std::endl << std::endl;
+    }
+    file.close();
+  }
+
   return 0;
 }
