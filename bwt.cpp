@@ -3,10 +3,10 @@
 struct brrw::hlp::Suffix{
 public:
   size_t _indx;
-  std::string _suffix;
+  std::wstring _suffix;
 };
 
-std::vector<size_t> brrw::hlp::getSuffixArray(std::string_view data, size_t size){
+std::vector<size_t> brrw::hlp::getSuffixArray(std::wstring_view data, size_t size){
 
   std::vector<Suffix> arr_suffixs(size);
 
@@ -26,12 +26,12 @@ std::vector<size_t> brrw::hlp::getSuffixArray(std::string_view data, size_t size
   return suffix_array;
 }
 
-std::string brrw::compression(std::string_view data)
+std::wstring brrw::compression(std::wstring_view data)
 {
   if(data.empty())
-    return std::string();
+    return std::wstring();
 
-  std::string shifr;
+  std::wstring shifr;
   
   size_t size = data.size();
   std::vector<size_t> suffix_array = hlp::getSuffixArray(data, size);
@@ -44,14 +44,49 @@ std::string brrw::compression(std::string_view data)
   return shifr;
 }
 
-std::string brrw::decompression(std::string_view shifr){
+inline uint16_t brrw::hlp::getMinVal(std::wstring_view::iterator start, const std::wstring_view::iterator& end){
+  uint16_t min_indx = UINT16_MAX;
 
-  std::string data;
+  while(start < end){
+
+    if(*start < min_indx)
+      min_indx = *start;
+    
+    ++start;
+  }
+
+  return min_indx;
+}
+
+inline uint16_t brrw::hlp::getMaxVal(std::wstring_view::iterator start, const std::wstring_view::iterator& end){
+  uint16_t max_indx = 0;
+
+  while(start < end){
+
+    if(*start > max_indx)
+      max_indx = *start;
+    
+    ++start;
+  }
+
+  return max_indx;
+}
+
+std::wstring brrw::decompression(std::wstring_view shifr){
+
+  if(shifr.empty())
+    return std::wstring();
+
+  size_t size = shifr.size();
+  std::wstring data;
+
   data.reserve(shifr.size());
 
-  size_t rle[256]{}; 
+  int16_t min_val = hlp::getMinVal(shifr.begin(), shifr.end());
+  std::vector<size_t> rle((hlp::getMaxVal(shifr.begin(), shifr.end()) - min_val) + 1);
+
   for(auto it = shifr.begin(); it < shifr.end(); ++it)
-    ++rle[*it];
+    ++rle[*it - min_val];
 
   size_t indx = 0;
   for(auto it = std::begin(rle); it < std::end(rle); ++it)
@@ -63,15 +98,12 @@ std::string brrw::decompression(std::string_view shifr){
   std::vector<size_t> new_vec(shifr.size());
   for(auto it = shifr.begin(); it < shifr.end(); ++it)
   {
-    indx = rle[*it]++;
+    indx = rle[*it - min_val]++;
     new_vec[indx] = std::distance(shifr.begin(), it);
   }
 
-  for(auto it = new_vec.begin() + shifr.find('$'); it < new_vec.end();)
+  for(auto it = new_vec.begin() + shifr.find(L'$'); data.size() != shifr.size();)
   {
-    if(data.size() == shifr.size())
-      break;
-
     data.push_back(shifr[*it]);
     it = new_vec.begin() + *it;
     ++indx;
