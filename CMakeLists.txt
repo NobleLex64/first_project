@@ -6,7 +6,7 @@ enable_testing()
 
 set(CMAKE_CXX_STANDARD 20) 
 
-add_executable(testing main.cpp lz77.cpp bwt.cpp)
+add_executable(testing main.cpp lz77.cpp bwt.cpp treap.cpp mtf.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
