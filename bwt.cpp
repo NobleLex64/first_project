@@ -1,12 +1,24 @@
 #include "bwt.h"
 
+/* My libs */
+#include "myalgoritm.h"
+
+
+/* Struct for storing one element of a suffix array */
+
 struct brrw::hlp::Suffix{
 public:
   size_t _indx;
   std::wstring _suffix;
 };
 
-std::vector<size_t> brrw::hlp::getSuffixArray(std::wstring_view data, size_t size){
+/* 
+  1) getSuffixArray(..., ...) -> created suffix array, used vector<Suffix> 
+     and sort with compare(a, b) return a.suffix < b.suffix;
+     Speed: O(N), Memmory: ((N * (N + 1)) / 2), where  N - data.size().
+*/
+
+std::vector<size_t> brrw::hlp::getSuffixArray(std::wstring_view data, const size_t size){
 
   std::vector<Suffix> arr_suffixs(size);
 
@@ -26,6 +38,14 @@ std::vector<size_t> brrw::hlp::getSuffixArray(std::wstring_view data, size_t siz
   return suffix_array;
 }
 
+/* 
+  1) compression(...) -> return compression data, used suffix array
+    Speed: O(N), Memmory: O(SuffixArray), where N - data.size(), SuffixArray - the space it occupies
+
+  2) decompression(...) -> return decomression shifr, used many space
+    Speed: O(N), Memmory: O(M.max - M.min), where N - shifr.size(), M.max, M.min - max, min value of alphabet
+*/
+
 std::wstring brrw::compression(std::wstring_view data)
 {
   if(data.empty())
@@ -38,38 +58,10 @@ std::wstring brrw::compression(std::wstring_view data)
 
   shifr.reserve(size);
 
-  for(auto it = suffix_array.begin(); it < suffix_array.end(); ++it)
+  for(auto it = suffix_array.cbegin(); it < suffix_array.cend(); ++it)
     shifr.push_back(data[(*it + size - 1) % size]);
 
   return shifr;
-}
-
-inline uint16_t brrw::hlp::getMinVal(std::wstring_view::iterator start, const std::wstring_view::iterator& end){
-  uint16_t min_indx = UINT16_MAX;
-
-  while(start < end){
-
-    if(*start < min_indx)
-      min_indx = *start;
-    
-    ++start;
-  }
-
-  return min_indx;
-}
-
-inline uint16_t brrw::hlp::getMaxVal(std::wstring_view::iterator start, const std::wstring_view::iterator& end){
-  uint16_t max_indx = 0;
-
-  while(start < end){
-
-    if(*start > max_indx)
-      max_indx = *start;
-    
-    ++start;
-  }
-
-  return max_indx;
 }
 
 std::wstring brrw::decompression(std::wstring_view shifr){
@@ -82,24 +74,25 @@ std::wstring brrw::decompression(std::wstring_view shifr){
 
   data.reserve(shifr.size());
 
-  int16_t min_val = hlp::getMinVal(shifr.begin(), shifr.end());
-  std::vector<size_t> rle((hlp::getMaxVal(shifr.begin(), shifr.end()) - min_val) + 1);
+  wchar_t min_val = alg::getMinVal(shifr.begin(), shifr.end());
 
-  for(auto it = shifr.begin(); it < shifr.end(); ++it)
+  std::vector<size_t> rle((alg::getMaxVal(shifr.begin(), shifr.end()) - min_val) + 1);
+
+  for(auto it = shifr.cbegin(), end = shifr.cend(); it < end; ++it)
     ++rle[*it - min_val];
 
   size_t indx = 0;
-  for(auto it = std::begin(rle); it < std::end(rle); ++it)
+  for(auto it = std::begin(rle), end = std::end(rle); it < end; ++it)
   {
     indx += *(it);
     *(it) = indx - *(it);
   }
   
   std::vector<size_t> new_vec(shifr.size());
-  for(auto it = shifr.begin(); it < shifr.end(); ++it)
+  for(auto it = shifr.cbegin(), end = shifr.cend(); it < end; ++it)
   {
     indx = rle[*it - min_val]++;
-    new_vec[indx] = std::distance(shifr.begin(), it);
+    new_vec[indx] = std::distance(shifr.cbegin(), it);
   }
 
   for(auto it = new_vec.begin() + shifr.find(L'$'); data.size() != shifr.size();)

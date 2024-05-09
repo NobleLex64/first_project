@@ -1,12 +1,16 @@
 #ifndef NOBLELEX_PROJECT_LZ77
 #define NOBLELEX_PROJECT_LZ77
 
+/// produced.. Noble_lex_64, 04.2024
+/// algoritm LZ77 (compression and decompression)
+/// 
+
+/// STL libraries
 #include <string>
 #include <vector>
 #include <list>
-#include <string_view>
 
-#define _ITER_S_W std::string_view::iterator
+#define _ITER_S_W std::wstring_view::iterator
 #define _ITER_L   std::list<size_t>::iterator 
 
 namespace lz77{
@@ -39,12 +43,12 @@ namespace lz77{
   /// @brief compression data using the lz77 algorithm
   /// @param data this is text or another what compression
   /// @return return compresion data
-  std::string compression(std::string_view data);
+  std::wstring compression(std::wstring_view data);
 
   /// @brief decompression shifr(LZ77) to an uncompressed state
   /// @param shifr this compression data
   /// @return decompression shifr
-  std::string decompression(std::string_view shifr);
+  std::wstring decompression(std::wstring_view shifr);
 
 }// lz77
 

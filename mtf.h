@@ -1,15 +1,16 @@
 #ifndef COMPRESSION_ALGORTIM_MOVE_TO_FRONT
 #define COMPRESSION_ALGORTIM_MOVE_TO_FRONT
 
+/// produced.. Noble_lex 64, 05.2024
+/// algoritm 'MTF' - move to front
+/// used my libs "myAlg.h"
+
+/// STL libraries
 #include <string>
-#include <iterator>
-#include <list>
 
 namespace mtf{
 
   namespace hlp{
-    inline wchar_t getMinVal(std::wstring_view::iterator start, const std::wstring_view::iterator& end);
-    inline wchar_t getMaxVal(std::wstring_view::iterator start, const std::wstring_view::iterator& end);
   }
 
   /// @brief compression algoritm move-to-front
