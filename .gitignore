@@ -1,5 +1,6 @@
 *.lib
 build/*
 src/build/*
-data/*
+data/output/*
 .*
+main.cpp
