@@ -2,5 +2,6 @@
 build/*
 src/build/*
 data/output/*
+data/input/*
 .*
 main.cpp
