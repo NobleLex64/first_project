@@ -1,10 +1,11 @@
 #include "mtf.h"
 
+/*  STL libs */
+#include <string>
+#include <list>
+
 /* My libs */
 #include "myalgoritm.h"
-
-/*  STL libs */
-#include <list>
 
 /*  
   1) compression(...) -> return data after compresion

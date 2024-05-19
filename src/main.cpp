@@ -1,36 +1,67 @@
-#include "lz77.h"
-#include "bwt.h"
-#include "treap.h"
-#include "mtf.h"
-#include "haffman.h"
-
 #include <iostream>
 #include <fstream>
+#include <vector>
+#include <string>
 
-size_t getBitSize(std::wstring_view data)
-{
-  size_t counts_bit = 0;
-  for(auto it = data.begin(); it < data.end(); ++it)
+#include "zip.h"
+
+#ifdef _WIN32
+
+  #define _CD_ "cd "
+  #define _PATH_INPUT_ "..\\..\\data\\input\\"
+  #define _INPUT_PATH_INTO_FILE_ "get-childItem | foreach-object { $_.name } | out-file -filepath .\\.paths.txt"
+  #define _PATHS_ ".paths.txt"
+
+#endif
+
+#ifdef __linux__
+
+  #define _CD_ "cd "
+  #define _PATH_INPUT_ "../../data/input/"
+  #define _INPUT_PATH_INTO_FILE_ ";ls | tee >.paths.txt"
+  #define _PATHS_ ".paths.txt"
+
+#endif
+
+#ifdef __APPLE__
+
+  #define _CD_ "cd "
+  #define _PATH_INPUT_ "../../data/input/"
+  #define _INPUT_PATH_INTO_FILE_ ";ls | tee >.paths.txt"
+  #define _PATHS_ ".paths.txt"
+
+#endif
+
+int main(int argc, const char* argv[]){
+
+  std::vector<std::string> paths;
+  if (argc > 1)
+    for (int i = 1; i < argc; ++i)
+      paths.push_back(argv[i]);
+  else
   {
-    if(*it < 255)
-      counts_bit += 8;
-    else if(*it < 4096)
-      counts_bit += 12;
-    else if(*it < 65536)
-      counts_bit += 16;
-    else if(*it < 1'048'576)
-      counts_bit += 20;
-    else if(*it < 16'777'216)
-      counts_bit += 24;
-    else if(*it < 268'435'345)
-      counts_bit += 28;
-    else if(*it < 4'294'967'296)
-      counts_bit += 32;
+    int i = system(_CD_ _PATH_INPUT_ _INPUT_PATH_INTO_FILE_);
+
+    std::ifstream file(_PATH_INPUT_ _PATHS_);
+
+    if(!file.is_open())
+      std::cout << "not open!";
+    else
+    {
+      std::string path;
+      while(!file.eof())
+      {
+        std::getline(file, path);
+        paths.push_back(path);
+      }
+      paths.pop_back();
+
+      file.close();
+    }
   }
 
-  return counts_bit;
-}
+  zip::Zip point(paths);
+  point.startCompress();
 
-int main(){
   return 0;
 }

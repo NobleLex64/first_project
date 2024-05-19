@@ -1,32 +1,8 @@
 #include "myalgoritm.h"
 
-wchar_t alg::getMaxVal(std::wstring_view::iterator start, const std::wstring_view::iterator &end){
-  wchar_t min_indx = WCHAR_MAX;
-
-  while(start < end){
-
-    if(*start < min_indx)
-      min_indx = *start;
-    
-    ++start;
-  }
-
-  return min_indx;
-}
-
-wchar_t alg::getMinVal(std::wstring_view::iterator start, const std::wstring_view::iterator &end){
-  wchar_t max_indx = WCHAR_MIN;
-
-  while(start < end){
-
-    if(*start > max_indx)
-      max_indx = *start;
-    
-    ++start;
-  }
-
-  return max_indx;
-}
+/* STL libraries */
+#include <string>
+#include <vector>
 
 wchar_t alg::getCountsK(std::wstring_view text, const wchar_t k){
 
@@ -109,4 +85,39 @@ uint8_t alg::ln_2(unsigned long long num){
   }
 
   return last = pre_last == last - 1? last + 1: last;
+}
+
+std::vector<size_t> alg::suffixArray(std::wstring_view data, const size_t N) 
+{
+  std::vector<int32_t> rank(N), tmp_rank(N);
+  std::vector<size_t> suffixArray(N);
+
+  for(size_t i = 0; i < N; ++i)
+    suffixArray[i] = i;
+  
+  for(size_t i = 0; i < N; ++i)
+    rank[i] = data[i];
+  
+  for(size_t k = 0; k < N; k == 0 ? k = 1 : k <<= 1)
+  {
+    auto compare = [&](const size_t &A, const size_t &B)
+    {
+      if(rank[A] != rank[B]) return rank[A] < rank[B];
+
+      int32_t rA = rank[(A + k) % N];
+      int32_t rB = rank[(B + k) % N];
+
+      return rA < rB;
+    };
+
+    std::sort(suffixArray.begin(), suffixArray.end(), compare);
+
+    tmp_rank[suffixArray[0]] = 0;
+    for(int i = 1; i < N; ++i)
+      tmp_rank[suffixArray[i]] = tmp_rank[suffixArray[i - 1]] + compare(suffixArray[i - 1], suffixArray[i]);
+    
+    rank = tmp_rank;
+  }
+
+  return suffixArray;
 }

@@ -1,8 +1,14 @@
 #include "lz77.h"
 
-/*  */
+/* STL libraries  */
+#include <string>
+#include <vector>
+#include <list>
 
-inline _ITER_S_W lz77::hlp::endSubstr(_ITER_S_W dict_beg, _ITER_S_W buff_beg, const _ITER_S_W buff_end)
+/* My libraries */
+#include "myalgoritm.h"
+
+inline auto lz77::helper::endSubstr(auto dict_beg, auto buff_beg, const auto buff_end)
 {
   while(*dict_beg == *buff_beg && buff_beg < buff_end){
     ++dict_beg;
@@ -12,7 +18,7 @@ inline _ITER_S_W lz77::hlp::endSubstr(_ITER_S_W dict_beg, _ITER_S_W buff_beg, co
   return buff_beg;
 }
 
-std::pair<int8_t, int16_t> lz77::hlp::maxSubstr(std::list<size_t> &symbol, const _ITER_S_W data_beg, _ITER_S_W &buff_beg, _ITER_S_W buff_end){
+std::pair<int8_t, int16_t> lz77::helper::maxSubstr(std::list<size_t> &symbol, const auto data_beg, auto &buff_beg, auto buff_end){
   
   buff_end = std::min(buff_end, buff_beg + 15);
 
@@ -21,10 +27,10 @@ std::pair<int8_t, int16_t> lz77::hlp::maxSubstr(std::list<size_t> &symbol, const
 
   int16_t dist = 0;
 
-  _ITER_S_W dist_beg = data_beg;
-  _ITER_S_W dist_end = buff_end;
+  auto dist_beg = data_beg;
+  auto dist_end = buff_end;
 
-  for(_ITER_L start = symbol.begin(), end = symbol.end(); start != end; ++start){
+  for(auto start = symbol.begin(), end = symbol.end(); start != end; ++start){
 
     dist_beg = (data_beg + *start);
     dist_end  = endSubstr(dist_beg, buff_beg, buff_end);
@@ -42,41 +48,40 @@ std::pair<int8_t, int16_t> lz77::hlp::maxSubstr(std::list<size_t> &symbol, const
   return {count, dist};
 }
 
-inline void lz77::hlp::addNewIndx(std::vector<std::list<size_t>> &alphavit, const _ITER_S_W data_beg, _ITER_S_W &buff_beg, _ITER_S_W &buff_end){
+inline void lz77::helper::addNewIndx(std::vector<std::list<size_t>> &alphavit, const auto data_beg, auto &buff_beg, auto &buff_end, wchar_t min_val){
 
   size_t dist = std::distance(data_beg, buff_beg);
 
   while(buff_beg <= buff_end)
-    alphavit[*buff_beg++].push_back(dist++);
+    alphavit[*buff_beg++ - min_val].push_back(dist++);
 }
-
-/*  */
 
 std::wstring lz77::compression(std::wstring_view data)
 {
   if(data.empty())
     return std::wstring();
 
+  wchar_t min_val = alg::getMinVal(data.begin(), data.end());
   std::wstring shifr;
-  std::vector<std::list<size_t>> alphavit(0xFF);
+  std::vector<std::list<size_t>> alphavit(alg::getMaxVal(data.begin(), data.end()) - min_val + 1);
 
   shifr.reserve(data.size());
 
   std::pair<int8_t, int16_t> count_dist;
 
-  _ITER_S_W beg = data.begin();
+  auto beg = data.begin();
 
-  for(_ITER_S_W it = beg, end = data.end(); it < end; ++it)
+  for(auto it = beg, end = data.end(); it < end; ++it)
   {   
-    _ITER_S_W start = it;
+    auto start = it;
 
-    while(!alphavit[*it].empty() && ((std::distance(beg, it) - alphavit[*it].front()) > 4080))
-      alphavit[*it].pop_front();
+    while(!alphavit[*it - min_val].empty() && ((std::distance(beg, it) - alphavit[*it - min_val].front()) > 4080))
+      alphavit[*it - min_val].pop_front();
 
-    count_dist = hlp::maxSubstr(alphavit[*it], beg, it, end);
+    count_dist = helper::maxSubstr(alphavit[*it - min_val], beg, it, end);
 
     if(it < end)
-      hlp::addNewIndx(alphavit, beg, start, it);
+      helper::addNewIndx(alphavit, beg, start, it, min_val);
 
     shifr.push_back((count_dist.second >> 4) & 0xFF);
     shifr.push_back(((count_dist.second << 4) & 0xF0) | (count_dist.first & 0x0F));
@@ -101,7 +106,7 @@ std::wstring lz77::decompression(std::wstring_view shifr)
   int8_t count = 0;
   int16_t dist = 0;
 
-  for(_ITER_S_W iter = shifr.begin(); iter < shifr.end(); iter += 3){
+  for(auto iter = shifr.begin(); iter < shifr.end(); iter += 3){
 
     dist  = ((*iter << 4) & 0xFF0) + ((*(iter + 1) >> 4) & 0x0F);
     count = *(iter + 1) & 0x0F;
