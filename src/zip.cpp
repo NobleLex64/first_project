@@ -400,11 +400,30 @@ bool zip::Zip::Menu::writeFile(const std::string &name, std::wstring &data)
 {
 
 #ifdef _WIN32
-    std::locale::global(std::locale("el_GR.ISO8859-7"));
+    try {
+      std::locale::global(std::locale("en_US"));
+  } catch (const std::runtime_error& e) {
+      std::cerr << "Locale error: " << e.what() << std::endl;
+      return 1;
+  }
 #endif
 
 #ifdef __linux__ 
-    std::locale::global(std::locale("el_GR.ISO8859-7"));
+  try {
+      std::locale::global(std::locale("en_US.UTF-8"));
+  } catch (const std::runtime_error& e) {
+      std::cerr << "Locale error: " << e.what() << std::endl;
+      return 1;
+  }
+#endif
+
+#ifdef __APPLE__ 
+  try {
+      std::locale::global(std::locale("en_US.UTF-8"));
+  } catch (const std::runtime_error& e) {
+      std::cerr << "Locale error: " << e.what() << std::endl;
+      return 1;
+  }
 #endif
 
   std::wifstream file(name, std::ios::binary);
