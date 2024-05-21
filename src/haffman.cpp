@@ -55,7 +55,7 @@ void haff::helper::getHaffTable(Node *head, auto &result, std::wstring val){
   if(!head)
     return;
   
-  if(head->value != L'\0')
+  if(!head->left && !head->right)
     result[head->value] = val;
 
   getHaffTable(head->left,  result, val + L'0');

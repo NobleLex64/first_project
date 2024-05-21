@@ -69,7 +69,7 @@ void getHaffTable(Node* head, auto &result, std::wstring val);
 /// @param data data
 /// @param haff_table haffman table
 /// @return Sum haffman_table[data[i]].second.size()
-size_t sizeHaffTable(std::wstring_view data, const auto &haff_table);
+size_t sizeHaffTable(std::wstring_view data, auto &haff_table);
 
 }// helper
 

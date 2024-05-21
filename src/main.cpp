@@ -4,45 +4,22 @@
 #include <string>
 
 #include "zip.h"
-
-#ifdef _WIN32
-
-  #define _CD_ "cd "
-  #define _PATH_INPUT_ "..\\..\\data\\input\\"
-  #define _INPUT_PATH_INTO_FILE_ "get-childItem | foreach-object { $_.name } | out-file -filepath .\\.paths.txt"
-  #define _PATHS_ ".paths.txt"
-
-#endif
-
-#ifdef __linux__
-
-  #define _CD_ "cd "
-  #define _PATH_INPUT_ "../../data/input/"
-  #define _INPUT_PATH_INTO_FILE_ ";ls | tee >.paths.txt"
-  #define _PATHS_ ".paths.txt"
-
-#endif
-
-#ifdef __APPLE__
-
-  #define _CD_ "cd "
-  #define _PATH_INPUT_ "../../data/input/"
-  #define _INPUT_PATH_INTO_FILE_ ";ls | tee >.paths.txt"
-  #define _PATHS_ ".paths.txt"
-
-#endif
+#include "directives.h"
 
 int main(int argc, const char* argv[]){
 
+  __LOCALE__
+
   std::vector<std::string> paths;
+
   if (argc > 1)
     for (int i = 1; i < argc; ++i)
       paths.push_back(argv[i]);
   else
   {
-    int i = system(_CD_ _PATH_INPUT_ _INPUT_PATH_INTO_FILE_);
+    int i = system("cd " _PATH_TO_PROJECT_ _PATH_DATA_ _PATH_INPUT_ _CREATE_PATHS_);
 
-    std::ifstream file(_PATH_INPUT_ _PATHS_);
+    std::ifstream file(_PATH_TO_PROJECT_ _PATH_DATA_ _PATH_INPUT_ ".paths.txt");
 
     if(!file.is_open())
       std::cout << "not open!";
@@ -61,7 +38,8 @@ int main(int argc, const char* argv[]){
   }
 
   zip::Zip point(paths);
-  point.startCompress();
+
+  point.startProgramm();
 
   return 0;
 }
