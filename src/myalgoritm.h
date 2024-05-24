@@ -63,7 +63,7 @@ wchar_t getOneBySize(std::wstring_view text);
 /// @param bit_mask number
 /// @param size how many bits in number need converts
 /// @return number in wstring
-std::wstring getByteByBit(const wchar_t bit_mask, const uint8_t size);
+std::wstring getByteByBit(const wchar_t bit_mask, const unsigned char size);
 
 /// @brief compress every 8 byte in 1 byte
 /// @param text what compressed
@@ -73,19 +73,19 @@ void eightXcompression(std::wstring_view text, std::wstring& result);
 /// @brief get size in bits and value after first '1' 
 /// @param number number from 0 to 2^27
 /// @return pair<size, value>
-std::pair<uint8_t, wchar_t> getSizeAndValue(const wchar_t number);
+std::pair<unsigned char, wchar_t> getSizeAndValue(const wchar_t number);
 
 /// @brief integer logarithm to base 2
 /// @param num number from 0 to 2^64
 /// @return ln(num)
-uint8_t ln_2(unsigned long long num);
+unsigned char ln_2(unsigned long long num);
 
 /// @brief return ln2(num), if num < 2^k return k - 1
 /// @param num number for ln2
 /// @return power of two
-constexpr uint8_t ln_2_hard(unsigned long long num) noexcept
+constexpr unsigned char ln_2_hard(unsigned long long num) noexcept
 {
-  uint8_t count = 0;
+  unsigned char count = 0;
   while(num)
   {
     num >>= 1;

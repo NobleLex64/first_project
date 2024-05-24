@@ -18,14 +18,14 @@ inline auto lz77::helper::endSubstr(auto dict_beg, auto buff_beg, const auto buf
   return buff_beg;
 }
 
-std::pair<int8_t, int16_t> lz77::helper::maxSubstr(std::list<size_t> &symbol, const auto data_beg, auto &buff_beg, auto buff_end){
+std::pair<char, short> lz77::helper::maxSubstr(std::list<size_t> &symbol, const auto data_beg, auto &buff_beg, auto buff_end){
   
   buff_end = std::distance(buff_beg, buff_end) > 15 ? buff_beg + 15 : buff_end;
 
-  int8_t count = 0;
-  int8_t tmp_count;
+  char count = 0;
+  char tmp_count;
 
-  int16_t dist = 0;
+  short dist = 0;
 
   auto dist_beg = data_beg;
   auto dist_end = buff_end;
@@ -67,7 +67,7 @@ std::wstring lz77::compression(std::wstring_view data)
 
   shifr.reserve(data.size());
 
-  std::pair<int8_t, int16_t> count_dist;
+  std::pair<char, short> count_dist;
 
   auto beg = data.begin();
 
@@ -103,8 +103,8 @@ std::wstring lz77::decompression(std::wstring_view shifr)
 
   data.reserve(shifr.size());
 
-  int8_t count = 0;
-  int16_t dist = 0;
+  char count = 0;
+  short dist = 0;
 
   for(auto iter = shifr.begin(); iter < shifr.end(); iter += 3){
 

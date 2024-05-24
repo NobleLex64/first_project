@@ -152,7 +152,7 @@ std::wstring haff::decompression(std::wstring_view shifr){
 
   for(auto end = it + *(it - 1) * 2; it < end; it += 2)
   {
-    std::pair<uint8_t, wchar_t> size_value = alg::getSizeAndValue(*it);
+    std::pair<unsigned char, wchar_t> size_value = alg::getSizeAndValue(*it);
     haff_table[alg::getByteByBit(size_value.second, size_value.first)] = *(it + 1);
   }
 

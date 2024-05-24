@@ -10,8 +10,8 @@ namespace rle{
 namespace helper{
 
 // Needed to count repeating characters or doesn't repraring
-uint16_t countsComboChars(std::wstring_view::const_iterator &start, const std::wstring_view::const_iterator &end);
-uint16_t countsSingleChar(std::wstring_view::const_iterator &start, const std::wstring_view::const_iterator &end);
+unsigned short countsComboChars(std::wstring_view::const_iterator &start, const std::wstring_view::const_iterator &end);
+unsigned short countsSingleChar(std::wstring_view::const_iterator &start, const std::wstring_view::const_iterator &end);
 
 // Needed for compress text or image
 void compressionTxt(std::wstring_view text,  std::wstring& shifr);

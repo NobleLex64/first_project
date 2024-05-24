@@ -26,8 +26,8 @@ inline auto endSubstr(auto dict_beg, auto buff_beg, const auto buff_end);
 /// @param data_beg points on first elem in string_view
 /// @param buff_beg points on first elem in sliding window buffer zone
 /// @param buff_end points on last possible elem in sliding window buffer zone
-/// @return std::pair<int8_t, int16_t>, pair.first -> count, pair.second -> distance
-std::pair<int8_t, int16_t> maxSubstr(std::list<size_t> &symbol, const auto data_beg, auto &buff_beg, auto buff_end);
+/// @return std::pair<char, short>, pair.first -> count, pair.second -> distance
+std::pair<char, short> maxSubstr(std::list<size_t> &symbol, const auto data_beg, auto &buff_beg, auto buff_end);
 
 /// @brief this function modificate vector<list<size_t>>, adds new indices in the range from buff_beg to buff_end
 /// @param alphavit vector list [0..255] -> list {indices}

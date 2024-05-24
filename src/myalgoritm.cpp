@@ -18,7 +18,7 @@ wchar_t alg::getCountsK(std::wstring_view text, const wchar_t k){
 wchar_t alg::getOneBySize(std::wstring_view text){
 
   wchar_t count = 0;
-  int32_t cur_v = 0x1;
+  int cur_v = 0x1;
 
   for(auto it = text.crbegin(), end = text.crend(); it != end; ++it, cur_v <<= 1)
     count += (*it == L'1') ? cur_v : 0;
@@ -26,12 +26,12 @@ wchar_t alg::getOneBySize(std::wstring_view text){
   return count;
 }
 
-std::wstring alg::getByteByBit(const wchar_t bit_mask, const uint8_t size){
+std::wstring alg::getByteByBit(const wchar_t bit_mask, const unsigned char size){
 
   std::wstring res(size, '0');
   wchar_t bit = 1 << (size - 1);
 
-  for(uint16_t i = 0; i < size; ++i)
+  for(unsigned short i = 0; i < size; ++i)
   {
     if(bit & bit_mask)
       *(res.begin() + i) = L'1';
@@ -48,13 +48,13 @@ void alg::eightXcompression(std::wstring_view text, std::wstring& result){
     result.push_back(alg::getOneBySize(text.substr(i, 8)));
 }
 
-std::pair<uint8_t, wchar_t> alg::getSizeAndValue(const wchar_t number)
+std::pair<unsigned char, wchar_t> alg::getSizeAndValue(const wchar_t number)
 {
-  uint8_t size = 27;
+  unsigned char size = 27;
   wchar_t value = L'\0';
   wchar_t bit = 0x800'0000;
 
-  for(uint8_t i = 0; bit > 0; bit >>= 1, ++i)
+  for(unsigned char i = 0; bit > 0; bit >>= 1, ++i)
     if(bit & number)
     {
       size -= i;
@@ -66,11 +66,11 @@ std::pair<uint8_t, wchar_t> alg::getSizeAndValue(const wchar_t number)
   return {size, value};
 }
 
-uint8_t alg::ln_2(unsigned long long num){
+unsigned char alg::ln_2(unsigned long long num){
 
-  uint8_t last = 1;
-  uint8_t pre_last = 1;
-  uint8_t i = 0;
+  unsigned char last = 1;
+  unsigned char pre_last = 1;
+  unsigned char i = 0;
 
   while(num)
   {
@@ -89,7 +89,7 @@ uint8_t alg::ln_2(unsigned long long num){
 
 std::vector<size_t> alg::suffixArray(std::wstring_view data, const size_t N) 
 {
-  std::vector<int32_t> rank(N), tmp_rank(N);
+  std::vector<int> rank(N), tmp_rank(N);
   std::vector<size_t> suffixArray(N);
 
   for(size_t i = 0; i < N; ++i)
@@ -104,8 +104,8 @@ std::vector<size_t> alg::suffixArray(std::wstring_view data, const size_t N)
     {
       if(rank[A] != rank[B]) return rank[A] < rank[B];
 
-      int32_t rA = rank[(A + k) % N];
-      int32_t rB = rank[(B + k) % N];
+      int rA = rank[(A + k) % N];
+      int rB = rank[(B + k) % N];
 
       return rA < rB;
     };
