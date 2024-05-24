@@ -432,6 +432,12 @@ void zip::Zip::Menu::usualMode()
       data.insert(0, type);
 
       std::cout << " is compliteted!\nResult K: " << best_k << std::endl << ".......................\n";
+
+      type.clear();
+      if(openFile(_PATH_TO_PROJECT_ _PATH_DATA_ _PATH_INPUT_ + name, type, 'r'))
+        std::cout << "The file '" << name << "' was clear!" << std::endl;
+      else
+        std::cerr << "The file '" << name << "' wasn't clear!" << std::endl;
     }
 
     for(int i = name.size() - 1; i >= 0; --i)
@@ -442,9 +448,7 @@ void zip::Zip::Menu::usualMode()
       }
 
     if(openFile(_PATH_TO_PROJECT_ _PATH_DATA_ _PATH_INPUT_  + name, data, 'r'))
-    {
-      std::cout << "The shifr was writed in file '"<< name  <<"'!" << std::endl;
-    }
+      std::cout << "The shifr was writed in file '" << name  <<"'!" << std::endl;
     else
       std::cerr << "Oops! Error write shifr in file!" << std::endl;
   }
@@ -578,6 +582,11 @@ void zip::Zip::Menu::creativeMode()
     }
     
     data.insert(0, type_of_comb);
+    type_of_comb.clear();
+    if(openFile(_PATH_TO_PROJECT_ _PATH_DATA_ _PATH_INPUT_ + name, type_of_comb, 'r'))
+      std::cout << "The file '" << name << "' was clear!" << std::endl;
+    else
+      std::cerr << "The file '" << name << "' wasn't clear!" << std::endl;
 
     for(int i = name.size() - 1; i >= 0; --i)
       if(name[i] == '.')
@@ -587,9 +596,7 @@ void zip::Zip::Menu::creativeMode()
       }
 
     if(openFile(_PATH_TO_PROJECT_ _PATH_DATA_ _PATH_INPUT_  + name, data, 'r'))
-    {
-      std::cout << "The shifr was writed in file '"<< name  <<"'!" << std::endl;
-    }
+      std::cout << "The shifr was writed in file '" << name  <<"'!" << std::endl;
     else
       std::cerr << "Oops! Error write shifr in file!" << std::endl;
   }
@@ -645,6 +652,12 @@ void zip::Zip::Menu::allMode()
 
     for(int i = 4; i >= 0; --i)
       data = typeOfDecompression(type_of_comp[i], data);
+
+    type_of_comp.clear();
+    if(openFile(_PATH_TO_PROJECT_ _PATH_DATA_ _PATH_INPUT_ + name, type_of_comp, 'r'))
+      std::cout << "The file '" << name << "' was clear!" << std::endl;
+    else
+      std::cerr << "The file '" << name << "' wasn't clear!" << std::endl;
 
     for(int i = name.size() - 1; i >= 0; --i)
       if(name[i] == '.')
@@ -708,6 +721,12 @@ void zip::Zip::Menu::selectedMode()
 
     for(int i = 4; i >= 0; --i)
       data = typeOfDecompression(type_of_comp[i], data);
+
+    type_of_comp.clear();
+    if(openFile(_PATH_TO_PROJECT_ _PATH_DATA_ _PATH_INPUT_ + name, type_of_comp, 'r'))
+      std::cout << "The file '" << name << "' was clear!" << std::endl;
+    else
+      std::cerr << "The file '" << name << "' wasn't clear!" << std::endl;
 
     for(int i = name.size() - 1; i >= 0; --i)
       if(name[i] == '.')
