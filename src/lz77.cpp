@@ -20,7 +20,7 @@ inline auto lz77::helper::endSubstr(auto dict_beg, auto buff_beg, const auto buf
 
 std::pair<int8_t, int16_t> lz77::helper::maxSubstr(std::list<size_t> &symbol, const auto data_beg, auto &buff_beg, auto buff_end){
   
-  buff_end = std::min(buff_end, buff_beg + 15);
+  buff_end = std::distance(buff_beg, buff_end) > 15 ? buff_beg + 15 : buff_end;
 
   int8_t count = 0;
   int8_t tmp_count;
@@ -39,7 +39,7 @@ std::pair<int8_t, int16_t> lz77::helper::maxSubstr(std::list<size_t> &symbol, co
     if(tmp_count > count)
     {
       count = tmp_count;
-      dist  = std::distance(dist_beg, buff_beg);;
+      dist  = std::distance(dist_beg, buff_beg);
     }
   }
 

@@ -3,38 +3,42 @@
 /* STL libraries */
 #include <string>
 
-uint16_t rle::helper::countsComboChars(std::wstring_view text, std::wstring_view::iterator &it, const uint16_t max){
-  if(it == text.end())
+unsigned short rle::helper::countsComboChars(std::wstring_view::const_iterator &start, const std::wstring_view::const_iterator &end){
+  if(start == end)
     return 1;
 
-  auto beg = it;
-  auto end = std::min(it + max, text.end());
+  std::wstring_view::const_iterator beggin = start;
 
-  while(it < end && *it == *(++it));
+  while(start < end && *start == *(start + 1))
+    ++start;
 
-  return static_cast<uint16_t>(std::distance(beg, it--));
+  return (static_cast<unsigned short>(std::distance(beggin, start)) + 1);
 }
 
-uint16_t rle::helper::countsSingleChar(std::wstring_view text, std::wstring_view::iterator &it, const uint16_t max){
-  if(it == text.end())
+unsigned short rle::helper::countsSingleChar(std::wstring_view::const_iterator &start, const std::wstring_view::const_iterator &end){
+  if(start == end)
     return 1;
 
-  auto beg = it;
-  auto end = std::min(it + max, text.end());
+  std::wstring_view::const_iterator beggin = start;
 
-  while(it < end && *it != *(it + 1))
-    ++it;
+  while(start < end && *start != *(start + 1))
+    ++start;
 
-  return static_cast<uint16_t>(std::distance(beg, it--));
+  if(start != end)
+    return static_cast<unsigned short>(std::distance(beggin, start--));
+  else
+    return (static_cast<unsigned short>(std::distance(beggin, start)) + 1);
 }
 
 
 void rle::helper::compressionTxt(std::wstring_view text, std::wstring &shifr){
-  uint8_t len = 0;
+  unsigned char len = 0;
 
-  for(auto it = text.begin(), end = text.end(); it < end; ++it)
+  for(auto it = text.begin(), end = (text.end() - 1); it <= end; ++it)
   {
-    len = countsComboChars(text, it, 129);
+    std::wstring_view::const_iterator curr_end = std::distance(it, end) > 128 ? it + 128 : end;
+
+    len = static_cast<unsigned char>(countsComboChars(it, curr_end + 1));
     
     if(len > 1)
     {
@@ -44,7 +48,7 @@ void rle::helper::compressionTxt(std::wstring_view text, std::wstring &shifr){
     else
     {
       auto start = it;
-      len = countsSingleChar(text, it, 128);
+      len = static_cast<unsigned char>(countsSingleChar(it, curr_end));
       shifr.push_back(len - 1);
       shifr.insert(shifr.size(), text, std::distance(text.begin(), start), len);
     }
@@ -52,13 +56,15 @@ void rle::helper::compressionTxt(std::wstring_view text, std::wstring &shifr){
 }
 
 void rle::helper::compressionImg(std::wstring_view image, std::wstring& shifr){
-  uint8_t bit1 = 0;
-  uint8_t bit2 = 0;
-  uint16_t len = 0;
+  unsigned char bit1 = 0;
+  unsigned char bit2 = 0;
+  unsigned short len = 0;
 
-  for(auto it = image.begin(), end = image.end(); it < end; ++it)
+  for(auto it = image.begin(), end = (image.end() - 1); it <= end; ++it)
   {
-    len = countsComboChars(image, it, 16385);
+    std::wstring_view::const_iterator curr_end = std::distance(it, end) > 16384 ? it + 16384 : end;
+
+    len = countsComboChars(it, curr_end + 1);
 
     if(len > 1)
     { 
@@ -81,7 +87,7 @@ void rle::helper::compressionImg(std::wstring_view image, std::wstring& shifr){
     else
     {
       auto start = it;
-      len = countsSingleChar(image, it, 16384) - 1;
+      len = countsComboChars(it, curr_end) - 1;
 
       if(len > 64)
       {
@@ -91,7 +97,7 @@ void rle::helper::compressionImg(std::wstring_view image, std::wstring& shifr){
         shifr.push_back(bit2);
       }
       else
-        shifr.push_back(static_cast<uint8_t>(len));
+        shifr.push_back(static_cast<unsigned char>(len));
 
       shifr.insert(shifr.size(), image, std::distance(image.begin(), start), len + 1);
     }
@@ -99,35 +105,40 @@ void rle::helper::compressionImg(std::wstring_view image, std::wstring& shifr){
 }
 
 
-size_t rle::helper::newSizeTxt(std::wstring_view text){
-  uint8_t len = 0;
-  size_t size = 0;
+unsigned long long rle::helper::newSizeTxt(std::wstring_view text){
+  unsigned char len = 0;
+  unsigned long long size = 0;
 
-  for(auto it = text.begin(), end = text.end(); it < end; ++it)
+  for(auto it = text.begin(), end = (text.end() - 1); it <= end; ++it)
   {
-    len = countsComboChars(text, it, 128);
+    std::wstring_view::const_iterator curr_end = std::distance(it, end) > 128 ? it + 128 : end;
+
+    len = static_cast<unsigned char>(countsComboChars(it, curr_end + 1));
 
     if(len > 1)
       size += 2;
     else
     {
-      len = countsSingleChar(text, it, 128);
+      len = static_cast<unsigned char>(countsComboChars(it, curr_end ));
       size += len + 1;
     }
   }
   return size;
 }
 
-size_t rle::helper::newSizeImg(std::wstring_view image){
-  uint16_t len = 0;
-  size_t size  = 0;
+unsigned long long rle::helper::newSizeImg(std::wstring_view image){
+  unsigned short len = 0;
+  unsigned long long size  = 0;
 
-  for(auto it = image.begin(), end = image.end(); it < end; ++it)
+  for(auto it = image.begin(), end = (image.end() - 1); it <= end; ++it)
   {
-    len = countsComboChars(image, it, 16384);
+    std::wstring_view::const_iterator curr_end = std::distance(it, end) > 16384 ? it + 16384 : end;
+
+    len = countsComboChars(it, curr_end + 1);
 
     if(len > 1)
     {
+      len -= 2;
       if(len > 65)
         size += 3;
       else
@@ -135,7 +146,7 @@ size_t rle::helper::newSizeImg(std::wstring_view image){
     }
     else
     {
-      len = countsSingleChar(image, it);
+      len = countsSingleChar(it, curr_end) - 1;
 
       if(len > 64)
         size += len + 2;
@@ -148,8 +159,8 @@ size_t rle::helper::newSizeImg(std::wstring_view image){
 }
 
 
-size_t rle::helper::newSizeShifrTxt(std::wstring_view text){
-  size_t size = 0;
+unsigned long long rle::helper::newSizeShifrTxt(std::wstring_view text){
+  unsigned long long size = 0;
 
     for (auto it = text.begin() + 1, end = text.end() - 1; it < end; ++it)
       if ((*it & 128) == 128){
@@ -164,8 +175,8 @@ size_t rle::helper::newSizeShifrTxt(std::wstring_view text){
     return size;
 }
 
-size_t rle::helper::newSizeShifrImg(std::wstring_view image){
-  size_t size = 0;
+unsigned long long rle::helper::newSizeShifrImg(std::wstring_view image){
+  unsigned long long size = 0;
 
   for (auto it = image.begin() + 1, end = image.end() - 1; it < end; ++it)
       if ((*it & 128) == 128){
@@ -195,7 +206,7 @@ size_t rle::helper::newSizeShifrImg(std::wstring_view image){
 
 
 void rle::helper::decompressionTxt(std::wstring_view shifr, std::wstring& text){
-  uint8_t count = 0;
+  unsigned char count = 0;
   for(auto it = shifr.begin() + 1, end = shifr.end() - 1; it < end; ++it)
     if((*it & 128) == 128)
     {
@@ -211,7 +222,7 @@ void rle::helper::decompressionTxt(std::wstring_view shifr, std::wstring& text){
 }
 
 void rle::helper::decompressionImg(std::wstring_view shifr, std::wstring& image){
-  uint16_t count = 0;
+  unsigned short count = 0;
 
   for(auto it = shifr.begin() + 1, end = shifr.end() - 1; it < end; ++it){
     if ((*it & 128) == 128){
@@ -250,8 +261,8 @@ std::wstring rle::compression(std::wstring_view data)
     return std::wstring();
 
   std::wstring shifr = L"";
-  size_t new_size_text  = helper::newSizeTxt(data);
-  size_t new_size_image = helper::newSizeImg(data);
+  unsigned long long new_size_text  = helper::newSizeTxt(data);
+  unsigned long long new_size_image = helper::newSizeImg(data);
 
   if (new_size_text <= new_size_image)
   {

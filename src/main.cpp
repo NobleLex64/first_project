@@ -3,8 +3,8 @@
 #include <vector>
 #include <string>
 
-#include "zip.h"
 #include "directives.h"
+#include "zip.h"
 
 int main(int argc, const char* argv[]){
 
