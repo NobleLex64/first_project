@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <chrono>
 
 /* my compression libs*/
 #include "rle.h"
@@ -13,8 +14,6 @@
 #include "lz77.h"
 #include "haffman.h"
 #include "directives.h"
-
-
 
 // START PROGRAMM
 
@@ -365,6 +364,10 @@ void zip::Zip::Menu::usualMode()
   std::cout << "Lets goo! (enter any key)" << std::endl;
   std::cin.get();
   std::cin.clear();
+
+  clock_t TIME = 0;
+  clock_t start = 0, end = 0;
+
   const std::vector<std::vector<int>> types
   {
     {5},
@@ -427,12 +430,16 @@ void zip::Zip::Menu::usualMode()
       std::cout <<"\nThe order is what selected: ";
 
       for(auto it: type)
+      {
+        start = std::clock();
         data = typeOfCompression(it, data, it);
+        end = std::clock();
+        TIME = TIME + (end - start);
+      }
       
       data.insert(0, type);
 
-      std::cout << " is compliteted!\nResult K: " << best_k << std::endl << ".......................\n";
-
+      std::cout << " is compliteted!\nResult K:" << best_k << "\nTIME: " << static_cast<double>(TIME) / CLOCKS_PER_SEC << " [sec]"<< std::endl << ".......................\n";
       type.clear();
       if(openFile(_PATH_TO_PROJECT_ _PATH_DATA_ _PATH_INPUT_ + name, type, 'r'))
         std::cout << "The file '" << name << "' was clear!" << std::endl;
@@ -461,6 +468,9 @@ void zip::Zip::Menu::creativeMode()
   std::cout << "Lets goo! (enter any key)" << std::endl;
   std::cin.get();
   std::cin.clear();
+
+  clock_t TIME = 0;
+  clock_t start = 0, end = 0;
 
   for(int i = 0, n = paths.size(); i < n; ++i)
   {
@@ -567,9 +577,14 @@ void zip::Zip::Menu::creativeMode()
       exist[val] = true;
       coomb[k] = val;
 
-      data = typeOfCompression(val + 1, data, type_of_comb[k]);
+      start = clock();
+      data  = typeOfCompression(val + 1, data, type_of_comb[k]);
+      end   = clock();
+      TIME  = TIME + (end - start);
 
-      std::cout << "o";
+      cur_K = commK(data_bit_size, data);
+      std::cout << "K: " << cur_K << std::endl;
+      std::cout << "TIME: " << (static_cast<double>(end) - start) / CLOCKS_PER_SEC << " [sec]" << std::endl << std::endl;
       std::cout << std::endl << "You continue? (Y / any)" << std::endl;
       std::cout << ">>> ";
       std::cin >> coomand;
@@ -855,9 +870,16 @@ bool zip::Zip::Menu::writeFile(const std::string &name, std::wstring &data)
 
     wchar_t byte;
 
-    while(file.get(byte))
+    while(file.get(byte) && data.size() < 100'486'760)
+    {
+      if(data.size() % 10'486'760 == 0)
+        std::cout << "Read: " << data.size() << std::endl;
+
       data += byte;
-    
+    }
+
+    std::cout << "Read: " << data.size() << std::endl;
+
     file.close();
   }
   else 

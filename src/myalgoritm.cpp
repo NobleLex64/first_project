@@ -3,6 +3,7 @@
 /* STL libraries */
 #include <string>
 #include <vector>
+#include <algorithm>
 
 wchar_t alg::getCountsK(std::wstring_view text, const wchar_t k){
 
