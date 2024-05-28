@@ -38,7 +38,7 @@ void rle::helper::compressionTxt(std::wstring_view text, std::wstring &shifr){
   {
     std::wstring_view::const_iterator curr_end = std::distance(it, end) > 128 ? it + 128 : end;
 
-    len = static_cast<unsigned char>(countsComboChars(it, curr_end + 1));
+    len = static_cast<unsigned char>(countsComboChars(it, curr_end));
     
     if(len > 1)
     {
@@ -64,12 +64,12 @@ void rle::helper::compressionImg(std::wstring_view image, std::wstring& shifr){
   {
     std::wstring_view::const_iterator curr_end = std::distance(it, end) > 16384 ? it + 16384 : end;
 
-    len = countsComboChars(it, curr_end + 1);
+    len = countsComboChars(it, curr_end);
 
     if(len > 1)
     { 
       len -= 2;
-      if(len > 65)
+      if(len > 63)
       {
         bit1 = (len >> 8) | 192;
         bit2 = len & 255;
@@ -87,9 +87,9 @@ void rle::helper::compressionImg(std::wstring_view image, std::wstring& shifr){
     else
     {
       auto start = it;
-      len = countsComboChars(it, curr_end) - 1;
+      len = countsSingleChar(it, curr_end) - 1;
 
-      if(len > 64)
+      if(len > 63)
       {
         bit1 = (len >> 8) | 64;
         bit2 = len & 255;
@@ -99,6 +99,7 @@ void rle::helper::compressionImg(std::wstring_view image, std::wstring& shifr){
       else
         shifr.push_back(static_cast<unsigned char>(len));
 
+      size_t s = std::distance(image.begin(), start);
       shifr.insert(shifr.size(), image, std::distance(image.begin(), start), len + 1);
     }
   }
@@ -113,13 +114,13 @@ unsigned long long rle::helper::newSizeTxt(std::wstring_view text){
   {
     std::wstring_view::const_iterator curr_end = std::distance(it, end) > 128 ? it + 128 : end;
 
-    len = static_cast<unsigned char>(countsComboChars(it, curr_end + 1));
+    len = static_cast<unsigned char>(countsComboChars(it, curr_end));
 
     if(len > 1)
       size += 2;
     else
     {
-      len = static_cast<unsigned char>(countsComboChars(it, curr_end ));
+      len = static_cast<unsigned char>(countsSingleChar(it, curr_end));
       size += len + 1;
     }
   }
@@ -134,12 +135,12 @@ unsigned long long rle::helper::newSizeImg(std::wstring_view image){
   {
     std::wstring_view::const_iterator curr_end = std::distance(it, end) > 16384 ? it + 16384 : end;
 
-    len = countsComboChars(it, curr_end + 1);
+    len = countsComboChars(it, curr_end);
 
     if(len > 1)
     {
       len -= 2;
-      if(len > 65)
+      if(len > 63)
         size += 3;
       else
         size += 2;
@@ -148,10 +149,10 @@ unsigned long long rle::helper::newSizeImg(std::wstring_view image){
     {
       len = countsSingleChar(it, curr_end) - 1;
 
-      if(len > 64)
-        size += len + 2;
+      if(len > 63)
+        size += len + 3;
       else
-        size += len + 1;
+        size += len + 2;
     }
   }
 
@@ -193,12 +194,12 @@ unsigned long long rle::helper::newSizeShifrImg(std::wstring_view image){
       else{
         if((*it & 64) == 64){
           size += (*it & 63) * 256 + (*(it + 1) & 255) + 1;
-          it += *it + 2;
+          it += size + 1;
         }
         else
         {
           size += (*it & 63) + 1;
-          it += *it + 1;
+          it += size;
         }
       }
   return size;
@@ -229,8 +230,8 @@ void rle::helper::decompressionImg(std::wstring_view shifr, std::wstring& image)
       if((*it & 64) == 64)
       {
         count = (*it & 63) * 256 + (*(it + 1) & 255) + 2;
-        image.insert(image.end(), count, *(it + 2));
         it += 2;
+        image.insert(image.end(), count, *it);
       }
       else
       {
@@ -242,7 +243,7 @@ void rle::helper::decompressionImg(std::wstring_view shifr, std::wstring& image)
       if((*it & 64) == 64){
         count = (*it & 63) * 256 + (*(it + 1) & 255) + 1;
         image.insert(image.size(), shifr, std::distance(shifr.begin(), it) + 2, count);
-        it += count;
+        it += count + 1;
       }
       else
       {
